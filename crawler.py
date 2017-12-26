@@ -49,7 +49,7 @@ def crawler(student_id, password, subject, course_number):
     ######## ADD/DROP ########
     response5 = br.open("https://esther.rice.edu/selfserve/bwskfreg.P_AltPin")
     # response5 = br.follow_link(text_regex=r"Add/Drop")
-    print(br.title())
+    print(br.title()) # TODO check the title of the page to make sure everything is ok?
     print(response5.getcode())
     print(response5.geturl())
 
@@ -89,8 +89,8 @@ def crawler(student_id, password, subject, course_number):
         url=response9.geturl(), response_info=response9.info()
     )
     results_table = root.find(".//table[@class='datadisplaytable']/tbody")
-    if results_table.find("./tr[3]") is None:
-        print("No results found!")
+    if results_table is None: # TODO rework to make this more testable
+        print("No results found for %s %s!" % (subject, course_number))
     else:
         if results_table.find("./tr[3]/td[1]/abbr[@title='Closed']") is not None:
             print("Course %s %s is closed." % (subject, course_number))

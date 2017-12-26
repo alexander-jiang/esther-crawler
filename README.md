@@ -18,6 +18,7 @@ Also note that the config.json file stores your ID and password in plaintext,
 which is ~~arguably~~ a bad idea. This is another todo item.
 
 ### Todo:
+- Add tests to ensure that everything is working
 - Actually register for the course if it's open
 - Multiple queries
 - Encrypt the config.json file
