@@ -1,6 +1,6 @@
 {
   "student_id": "mystudentid",
   "password": "mypassword",
-  "subjects": ["PSYC", "NEUR"],
+  "subject": "PSYC",
   "course_number": "362"
 }

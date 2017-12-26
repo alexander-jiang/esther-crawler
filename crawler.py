@@ -5,7 +5,7 @@ import json
 class LoginException(Exception):
     """Exception to be thrown when login to Esther fails."""
 
-def crawler(student_id, password, subjects, course_number):
+def crawler(student_id, password, subject, course_number):
     ######## LOGIN ########
     br = mechanize.Browser()
     br.open("https://esther.rice.edu/")
@@ -31,23 +31,24 @@ def crawler(student_id, password, subjects, course_number):
     # print(response2.geturl())
 
     ######## SITE MAP ########
-    response3 = br.open("https://esther.rice.edu/selfserve/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&depth_in=2&columns_in=3")
-    print(br.title())
-    print(response3.getcode())
-    if br.title() != "Site Map":
-        raise LoginException("Login failed!")
-    print(response3.geturl())
-
-    # Click the "show details" button on the site map
-    br.select_form(action="/selfserve/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&depth_in=3&columns_in=2")
-    # print(br.form)
-    response4 = br.submit(name="submitbutton", type="submit")
+    # response3 = br.open("https://esther.rice.edu/selfserve/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&depth_in=2&columns_in=3")
     # print(br.title())
-    # print(response4.getcode())
-    # print(response4.geturl())
+    # print(response3.getcode())
+    # if br.title() != "Site Map":
+    #     raise LoginException("Login failed!")
+    # print(response3.geturl())
+    #
+    # # Click the "show details" button on the site map
+    # br.select_form(action="/selfserve/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&depth_in=3&columns_in=2")
+    # # print(br.form)
+    # response4 = br.submit(name="submitbutton", type="submit")
+    # # print(br.title())
+    # # print(response4.getcode())
+    # # print(response4.geturl())
 
     ######## ADD/DROP ########
-    response5 = br.follow_link(text_regex=r"Add/Drop")
+    response5 = br.open("https://esther.rice.edu/selfserve/bwskfreg.P_AltPin")
+    # response5 = br.follow_link(text_regex=r"Add/Drop")
     print(br.title())
     print(response5.getcode())
     print(response5.geturl())
@@ -75,13 +76,30 @@ def crawler(student_id, password, subjects, course_number):
     print(response8.geturl())
 
     br.select_form(action="/selfserve/bwckgens.P_RegsGetCrse")
-    br.set_value(subjects, name="sel_subj", type="select")
+    br.set_value([subject], name="sel_subj", type="select")
     br.set_value(course_number, name="sel_crse", type="text")
     response9 = br.submit(name="sub_btn", type="submit", nr=0)
     print(br.title())
     print(response9.getcode())
     print(response9.geturl())
-    print(response9.read())
+    # print(response9.read())
+
+    root = mechanize._html.content_parser(
+        response9.read(),
+        url=response9.geturl(), response_info=response9.info()
+    )
+    results_table = root.find(".//table[@class='datadisplaytable']/tbody")
+    if results_table.find("./tr[3]") is None:
+        print("No results found!")
+    else:
+        if results_table.find("./tr[3]/td[1]/abbr[@title='Closed']") is not None:
+            print("Course %s %s is closed." % (subject, course_number))
+        elif results_table.find("./tr[3]/td[1]/input[@type='checkbox']") is not None:
+            print("Course %s %s not closed!" % (subject, course_number))
+        elif len(results_table.findall("./tr[3]/td[1]/*")) == 0:
+            print("Already registered for course %s %s!" % (subject, course_number))
+        else:
+            print("Unexpected element in the first column!")
 
     ######## LOGOUT ########
     final_response = br.follow_link(text_regex=r"EXIT")
@@ -95,10 +113,10 @@ def main():
     config_file.close()
     student_id = config_options["student_id"]
     password = config_options["password"]
-    subjects = config_options["subjects"]
+    subject = config_options["subject"]
     course_number = config_options["course_number"]
     try:
-        crawler(student_id, password, subjects, course_number)
+        crawler(student_id, password, subject, course_number)
     except LoginException as e:
         print("Couldn't login to Esther! Check the login credentials in config.json or if Esther is down.")
 
