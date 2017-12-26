@@ -3,8 +3,7 @@ import mechanize
 import json
 
 class LoginException(Exception):
-    def __init__(self, message):
-        Exception(message)
+    """Exception to be thrown when login to Esther fails."""
 
 def crawler(student_id, password, subjects, course_number):
     ######## LOGIN ########
@@ -35,7 +34,7 @@ def crawler(student_id, password, subjects, course_number):
     response3 = br.open("https://esther.rice.edu/selfserve/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&depth_in=2&columns_in=3")
     print(br.title())
     print(response3.getcode())
-    if response3.getcode() != "Site Map":
+    if br.title() != "Site Map":
         raise LoginException("Login failed!")
     print(response3.geturl())
 
@@ -98,6 +97,9 @@ def main():
     password = config_options["password"]
     subjects = config_options["subjects"]
     course_number = config_options["course_number"]
-    crawler(student_id, password, subjects, course_number)
+    try:
+        crawler(student_id, password, subjects, course_number)
+    except LoginException as e:
+        print("Couldn't login to Esther! Check the login credentials in config.json or if Esther is down.")
 
 if __name__ == '__main__': main()
